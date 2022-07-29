@@ -2,7 +2,7 @@
 using UnityEngine;
 
 [CustomEditor(typeof(KMBombModule))]
-public class KMBombModuleEditor : Editor
+public class KMBombModuleEditor : KMDelegateEditor
 {
     public override void OnInspectorGUI()
     {
@@ -21,12 +21,15 @@ public class KMBombModuleEditor : Editor
             EditorGUILayout.PropertyField(serializedObject.FindProperty("RequiresTimerVisibility"));
 
             serializedObject.ApplyModifiedProperties();
+            
+            SkipBase = true;
+            base.OnInspectorGUI();
         }
     }
 }
 
 [CustomEditor(typeof(KMNeedyModule))]
-public class KMNeedyModuleEditor : Editor
+public class KMNeedyModuleEditor : KMDelegateEditor
 {
     public override void OnInspectorGUI()
     {
@@ -58,6 +61,9 @@ public class KMNeedyModuleEditor : Editor
             EditorGUILayout.PropertyField(serializedObject.FindProperty("WarnAtFiveSeconds"));
 
             serializedObject.ApplyModifiedProperties();
+            
+            SkipBase = true;
+            base.OnInspectorGUI();
         }
     }
 }
