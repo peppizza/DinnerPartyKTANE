@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
 
+[HelpURL("https://github.com/Qkrisi/ktanemodkit/wiki/KMDelegateInfo")]
 [AddComponentMenu("")]
 public sealed class KMDelegateInfo : MonoBehaviour, ISerializationCallbackReceiver
 {

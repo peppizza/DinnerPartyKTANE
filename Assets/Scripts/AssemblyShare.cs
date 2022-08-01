@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
+[HelpURL("https://github.com/Qkrisi/ktanemodkit/wiki/AssemblyShare")]
 [AddComponentMenu("")]
 public class AssemblyShare : MonoBehaviour
 {
