@@ -1,6 +1,11 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
+public abstract partial class KMDelegateEditor : Editor
+{
+    protected bool SkipBase;
+}
+
 [CustomEditor(typeof(KMBombModule))]
 public class KMBombModuleEditor : KMDelegateEditor
 {

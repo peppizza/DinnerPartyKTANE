@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using UnityEditor;
 using UnityEngine;
@@ -125,6 +126,9 @@ public partial class CommunityFeaturesDownloader
         }
         private string Repo;
         private string ContentType;
+        private string[] ContentTypes = new string[0];
+        private string NamePattern;
+        private string TagPattern;
         private int PageNumber = 1;
         private WWW CurrentRequest;
         private int LastSelectedAssetIndex = -1;
@@ -175,6 +179,11 @@ public partial class CommunityFeaturesDownloader
             else _ready = true;
             Repo = Feature.DownloadData["Repo"];
             ContentType = Feature.DownloadData["ContentType"];
+            string contentTypes;
+            if(Feature.DownloadData.TryGetValue("ContentTypes", out contentTypes))
+                ContentTypes = contentTypes.Split(';');
+            Feature.DownloadData.TryGetValue("NamePattern", out NamePattern);
+            Feature.DownloadData.TryGetValue("TagPattern", out TagPattern);
             Feature.DownloadData.TryGetValue("Default", out DefaultAsset);
         }
 
@@ -196,13 +205,18 @@ public partial class CommunityFeaturesDownloader
                 var count = page.Length;
                 page = page.Select(r =>
                 {
-                    r.assets = r.assets.Where(a => a.content_type == ContentType).ToArray();
+                    r.assets = r.assets.Where(a =>
+                        (a.content_type == ContentType || ContentTypes.Contains(a.content_type)) &&
+                        (string.IsNullOrEmpty(NamePattern) ||
+                         Regex.IsMatch(a.name, NamePattern, RegexOptions.IgnoreCase))).ToArray();
                     return r;
-                }).Where(r => r.assets.Length != 0).ToArray();
+                }).Where(r => r.assets.Length > 0).ToArray();
                 ReleaseCache[Feature.Name].AddRange(page);
                 if (count < ResultsPerPage)
                 {
-                    VersionTags = Releases.Select(r => r.tag_name).ToArray();
+                    VersionTags = Releases.Select(r => r.tag_name).Where(t =>
+                            string.IsNullOrEmpty(TagPattern) || Regex.IsMatch(t, TagPattern, RegexOptions.IgnoreCase))
+                        .ToArray();
                     _ready = true;
                 }
                 CurrentRequest = null;
