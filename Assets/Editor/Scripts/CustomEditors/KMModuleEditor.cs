@@ -3,6 +3,8 @@ using UnityEngine;
 
 public abstract partial class KMDelegateEditor : Editor
 {
+    protected static readonly bool DelegateEditorsActive;
+    
     protected bool SkipBase;
 }
 
@@ -27,8 +29,11 @@ public class KMBombModuleEditor : KMDelegateEditor
 
             serializedObject.ApplyModifiedProperties();
             
-            SkipBase = true;
-            base.OnInspectorGUI();
+            if(DelegateEditorsActive)
+            {
+                SkipBase = true;
+                base.OnInspectorGUI();
+            }
         }
     }
 }
@@ -67,8 +72,11 @@ public class KMNeedyModuleEditor : KMDelegateEditor
 
             serializedObject.ApplyModifiedProperties();
             
-            SkipBase = true;
-            base.OnInspectorGUI();
+            if(DelegateEditorsActive)
+            {
+                SkipBase = true;
+                base.OnInspectorGUI();
+            }
         }
     }
 }
