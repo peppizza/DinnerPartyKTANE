@@ -125,6 +125,7 @@ public partial class CommunityFeaturesDownloader
             }
         }
         private string Repo;
+        private bool UseSourceCode;
         private string ContentType;
         private string[] ContentTypes = new string[0];
         private string NamePattern;
@@ -144,10 +145,19 @@ public partial class CommunityFeaturesDownloader
         public override DownloadInfo Download()
         {
             var info = base.Download();
-            var Release = Releases[SelectedVersionIndex];
-            var asset = Release.assets[SelectedAssetIndex];
-            Downloader.Download(asset.browser_download_url, asset.size);
-            info.Info = Release.tag_name;
+            var release = Releases[SelectedVersionIndex];
+            Downloader.IsSourceCode = UseSourceCode;
+            if (UseSourceCode)
+            {
+                Downloader.Filename = release.tag_name + ".zip";
+                Downloader.Download(release.zipball_url, 0);
+            }
+            else
+            {
+                var asset = release.assets[SelectedAssetIndex];
+                Downloader.Download(asset.browser_download_url, asset.size);
+            }
+            info.Info = release.tag_name;
             return info;
         }
 
@@ -163,11 +173,14 @@ public partial class CommunityFeaturesDownloader
                 SelectedAssetIndex = index == -1 ? 0 : index;
                 LastSelectedVersionIndex = SelectedVersionIndex;
             }
-            SelectedAssetIndex = EditorGUILayout.Popup(SelectedAssetIndex, Assets, GUILayout.Width(DropdownWidth));
-            if (update || SelectedAssetIndex != LastSelectedAssetIndex)
+            if (!UseSourceCode)
             {
-                Downloader.Filename = Releases[SelectedVersionIndex].assets[SelectedAssetIndex].name;
-                LastSelectedAssetIndex = SelectedAssetIndex;
+                SelectedAssetIndex = EditorGUILayout.Popup(SelectedAssetIndex, Assets, GUILayout.Width(DropdownWidth));
+                if (update || SelectedAssetIndex != LastSelectedAssetIndex)
+                {
+                    Downloader.Filename = Releases[SelectedVersionIndex].assets[SelectedAssetIndex].name;
+                    LastSelectedAssetIndex = SelectedAssetIndex;
+                }
             }
         }
 
@@ -178,6 +191,9 @@ public partial class CommunityFeaturesDownloader
                 ReleaseCache.Add(Feature.Name, new List<ReleaseInfo>());
             else _ready = true;
             Repo = Feature.DownloadData["Repo"];
+            string useSourceCode;
+            UseSourceCode = Feature.DownloadData.TryGetValue("UseSourceCode", out useSourceCode) &&
+                            useSourceCode == "true";
             ContentType = Feature.DownloadData["ContentType"];
             string contentTypes;
             if(Feature.DownloadData.TryGetValue("ContentTypes", out contentTypes))
@@ -203,14 +219,17 @@ public partial class CommunityFeaturesDownloader
                     return;
                 var page = JsonConvert.DeserializeObject<ReleaseInfo[]>(CurrentRequest.text);
                 var count = page.Length;
-                page = page.Select(r =>
+                if (!UseSourceCode)
                 {
-                    r.assets = r.assets.Where(a =>
-                        (a.content_type == ContentType || ContentTypes.Contains(a.content_type)) &&
-                        (string.IsNullOrEmpty(NamePattern) ||
-                         Regex.IsMatch(a.name, NamePattern, RegexOptions.IgnoreCase))).ToArray();
-                    return r;
-                }).Where(r => r.assets.Length > 0).ToArray();
+                    page = page.Select(r =>
+                    {
+                        r.assets = r.assets.Where(a =>
+                            (a.content_type == ContentType || ContentTypes.Contains(a.content_type)) &&
+                            (string.IsNullOrEmpty(NamePattern) ||
+                             Regex.IsMatch(a.name, NamePattern, RegexOptions.IgnoreCase))).ToArray();
+                        return r;
+                    }).Where(r => r.assets.Length > 0).ToArray();
+                }
                 ReleaseCache[Feature.Name].AddRange(page);
                 if (count < ResultsPerPage)
                 {

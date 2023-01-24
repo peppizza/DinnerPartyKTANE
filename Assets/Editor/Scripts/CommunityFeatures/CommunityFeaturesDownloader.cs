@@ -31,7 +31,7 @@ public partial class CommunityFeaturesDownloader : EditorWindow
         window.Show();
     }
 
-    public const string VERSION = "1.1.1.0";
+    public const string VERSION = "1.2.0.0";
     public readonly Version PARSED_VERSION = new Version(VERSION);
 
     private static readonly string[] Sizes = {"KB", "MB", "GB", "TB" };
@@ -280,7 +280,7 @@ public partial class CommunityFeaturesDownloader : EditorWindow
                 EditorGUILayout.EndVertical();
                 EditorGUILayout.EndHorizontal();
         }
-        catch (ArgumentException)
+        catch (ArgumentException)   //Repaint
         {
         }
         catch (Exception ex)

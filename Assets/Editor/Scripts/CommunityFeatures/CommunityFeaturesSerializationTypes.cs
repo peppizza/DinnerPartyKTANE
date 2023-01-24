@@ -75,6 +75,7 @@ public partial class CommunityFeaturesDownloader
                 }
             }
             
+            [JsonProperty(Required = Required.Always)] public string zipball_url { get; set; }
             [JsonProperty(Required = Required.Always)] public string tag_name { get; set; }
             [JsonProperty(Required = Required.Always)] public AssetInfo[] assets { get; set; }
         }
