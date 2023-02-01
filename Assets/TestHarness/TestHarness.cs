@@ -1524,6 +1524,7 @@ public class TestHarness : MonoBehaviour
                 {
                     AddHighlightables();
                     AddSelectables();
+                    testSelectable.UpdateChildrenPositions();
 
                     if (currentSelectable == testSelectable)
                     {
