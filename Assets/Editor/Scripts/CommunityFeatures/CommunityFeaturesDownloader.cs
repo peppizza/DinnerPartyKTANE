@@ -31,7 +31,7 @@ public partial class CommunityFeaturesDownloader : EditorWindow
         window.Show();
     }
 
-    public const string VERSION = "1.2.0.0";
+    public const string VERSION = "1.2.1.0";
     public readonly Version PARSED_VERSION = new Version(VERSION);
 
     private static readonly string[] Sizes = {"KB", "MB", "GB", "TB" };
@@ -234,8 +234,11 @@ public partial class CommunityFeaturesDownloader : EditorWindow
                     GUILayout.Space(5);
                     if (GUILayout.Button("Remove", GUILayout.Width(DownloadButtonWidth)))
                     {
-                        foreach (var file in downloadedPlugin.Files)
+                        foreach (var _file in downloadedPlugin.Files)
                         {
+                            var file = _file;
+                            if(file.EndsWith("/*"))
+                                file = file.Remove(file.Length - 2);
                             var ModkitPath = Path.Combine(DataPath, file);
                             if (CurrentFeature.Integration)
                             {

@@ -194,7 +194,14 @@ public partial class CommunityFeaturesDownloader
             NotImplementedException error = null;
             if(!Directory.Exists(directory))
                 Directory.CreateDirectory(directory);
-            File.WriteAllBytes(zip, Query.bytes);
+            try
+            {
+                File.WriteAllBytes(zip, Query.bytes);
+            }
+            catch(IOException)
+            {
+                return;
+            }
             using (var file = ZipFile.Read(zip))
             {
                 var root = IsSourceCode ? file.First().FileName : String.Empty;
@@ -210,7 +217,7 @@ public partial class CommunityFeaturesDownloader
                     {
                         foreach(var e in GetEntries(file, root))
                             e.Extract(modkitLocation, ExtractExistingFileAction.OverwriteSilently);
-                        Import(location);
+                        //Import(location);
                     }
                     else switch (TargetType)
                     {
@@ -218,7 +225,7 @@ public partial class CommunityFeaturesDownloader
                             EnsureDirectoryExists(location);
                             foreach (var e in GetEntries(file, root).Where(e => e.FileName.StartsWith(target.Target)))
                                 e.Extract(modkitLocation, ExtractExistingFileAction.OverwriteSilently);
-                            Import(Path.Combine(location, filename));
+                            //Import(Path.Combine(location, filename));
                             break;
                         case FeatureInfo.ZipTarget.ZipTargetType.File:
                             var entry = file[target_location];
