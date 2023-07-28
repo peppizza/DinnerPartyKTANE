@@ -113,7 +113,7 @@ public class AssetBundler
         }
         else if (!AssemblyDefinitions.DefinitionExists())
         {
-            Debug.LogError("The selected mod id cannot be used to build this project. Please choose a different id in the \"Keep Talking Modkit / Configure Mod\" menu.");
+            Debug.LogErrorFormat("The selected mod id ({0}) cannot be used to build this project. Please choose a different id in the \"Keep Talking Modkit / Configure Mod\" menu.", ModConfig.ID);
             return;
         }
 

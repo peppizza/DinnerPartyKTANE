@@ -1,11 +1,13 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using UnityEditor;
 using UnityEditor.Compilation;
 using UnityEngine;
+
 public static class AssemblyDefinitions
 {
     // Prevent any loaded assemblies from being the name of an Assembly Definition.
@@ -75,9 +77,17 @@ public static class AssemblyDefinitions
     // Manually change the startup project in the generated sln, as Unity does not change this after creating an assembly definition.
     private static void Updatesln()
     {
+        if(!File.Exists(slnFile))
+            Initsln();
         var sln = File.ReadAllText(slnFile);
         sln = Regex.Replace(sln, @"StartupItem = .+\.csproj", "StartupItem = " + ModConfig.ID + ".csproj");
         File.WriteAllText(slnFile, sln);
+    }
+    
+    //Force Unity to generate the solution file
+    private static void Initsln()
+    {
+        System.Reflection.Assembly.GetAssembly(typeof(MonoScript)).GetType("UnityEditor.SyncVS").GetMethod("SyncSolution", BindingFlags.Public | BindingFlags.Static).Invoke(null, new object[0]);
     }
 
     // Unity does not supply an option to generate assembly definitions through code, so we must create our own.
