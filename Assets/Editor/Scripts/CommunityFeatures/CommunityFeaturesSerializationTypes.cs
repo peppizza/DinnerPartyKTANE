@@ -95,5 +95,12 @@ public partial class CommunityFeaturesDownloader
             [JsonProperty(Required = Required.Always)] public string Info { get; set; }
             [JsonProperty(Required = Required.Always)] public string[] Files { get; set; }
         }
+
+        [Serializable]
+        private class FeaturesSave
+        {
+            [JsonProperty(Required = Required.Always)] public List<DownloadInfo> InstalledPlugins { get; set; }
+            [JsonProperty(Required = Required.Always)] public List<string> CustomSources { get; set; }
+        }
     #pragma warning restore 649
 }
