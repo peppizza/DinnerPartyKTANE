@@ -1,0 +1,10 @@
+{
+  "name": "dinnerparty-Editor",
+  "references": [
+    "dinnerparty"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": []
+}
