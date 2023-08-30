@@ -117,19 +117,18 @@ public sealed class MusicalChairsModule : ModdedModule
 
     private void HandleInterrogateButton(char t)
     {
-        if (_queryCode.Contains('_'))
-        {
-            ChangeState(State.BadInput);
-            return;
-        }
-        
         switch (_currentState)
         {
             case State.Inactive:
                 Strike();
                 break;
             
-            case State.Idle:
+            case State.Idle:        
+                if (_queryCode.Contains('_'))
+                {
+                    ChangeState(State.BadInput);
+                    break;
+                }
                 ChangeState(State.Interrogating);
                 break;
             
@@ -141,19 +140,18 @@ public sealed class MusicalChairsModule : ModdedModule
 
     private void HandleAccuseButton(char t)
     {
-        if (_queryCode.Contains('_'))
-        {
-            ChangeState(State.BadInput);
-            return;
-        }
-        
         switch (_currentState)
         {
             case State.Inactive:
                 Strike();
                 break;
             
-            case State.Idle:
+            case State.Idle:        
+                if (_queryCode.Contains('_'))
+                {
+                    ChangeState(State.BadInput);
+                    break;
+                }
                 ChangeState(State.Accusing);
                 break;
             
