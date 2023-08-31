@@ -65,7 +65,6 @@ public sealed class GameLogic
         if (result.Count < 3)
         {
             _threeNamesBeforeBackup = false;
-            return;
         }
 
         var backupNames = new[] { 'D', 'G', 'E' };
@@ -101,8 +100,8 @@ public sealed class GameLogic
                     break;
             }
         }
-
-        SecondStageResult = result;
+        
+        SecondStageResult = result.Concat(new[] {'P', 'B', 'G', 'D', 'E'}).Distinct().Take(3).ToList();
     }
 
     private char SecondStageTable(int i, IList<char> table)
