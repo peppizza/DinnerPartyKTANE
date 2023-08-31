@@ -8,7 +8,7 @@ public sealed class Button : MonoBehaviour
 {
 	[SerializeField] private new KMAudio audio;
 	private Animator _animator;
-	public KMSelectable selectable;
+	private KMSelectable _selectable;
 	private static readonly int IsPressed = Animator.StringToHash("IsPressed");
 
 	public event Action<char> OnInteract;
@@ -18,17 +18,17 @@ public sealed class Button : MonoBehaviour
 	private void Awake()
 	{
 		_animator = GetComponent<Animator>();
-		selectable = GetComponent<KMSelectable>();
+		_selectable = GetComponent<KMSelectable>();
 
-		selectable.OnInteract += InternalOnInteract;
-		selectable.OnInteractEnded += InternalOnInteractEnded;
+		_selectable.OnInteract += InternalOnInteract;
+		_selectable.OnInteractEnded += InternalOnInteractEnded;
 	}
 
 	private bool InternalOnInteract()
 	{
 		_animator.SetBool(IsPressed, true);
 		audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
-		selectable.AddInteractionPunch();
+		_selectable.AddInteractionPunch();
 		if (!IsActive) return false;
 		var text = GetComponentInChildren<TextMesh>().text.ToCharArray()[0];
 		OnInteract?.Invoke(text);

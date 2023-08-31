@@ -30,20 +30,27 @@ public sealed class MusicalChairsModule : ModdedModule
     [SerializeField] private Button interrogateButton;
     [SerializeField] private Button accuseButton;
     [SerializeField] private TextMesh displayText;
+    [SerializeField] private TextMesh stageDisplayText;
 
     [SerializeField] private float timeInterrogating = 5f;
     [SerializeField] private float timeShowingResult = 5f;
     [SerializeField] private float timeAccusing = 5f;
 
     private KMAudio _audio;
+    private KMBombInfo _bombInfo;
 
     private char[] _queryCode;
     private State _currentState;
-    private string _lastResult;
+    private char[] _lastResult;
+    private int _stage;
+
+    private GameLogic _logic;
 
     protected override void Awake()
     {
         _audio = GetComponent<KMAudio>();
+        _bombInfo = GetComponent<KMBombInfo>();
+        _logic = new GameLogic(_bombInfo);
         
         foreach (var button in buttons)
         {
@@ -57,17 +64,18 @@ public sealed class MusicalChairsModule : ModdedModule
         _queryCode = new char[3];
 
         _currentState = State.Inactive;
+        _stage = 1;
         UpdateDisplay();
 
         base.Awake();
     }
 
-    
-
     protected override void OnActivate()
     {
-        //TODO: Make game logic
-        
+        _logic.CalculateSolution();
+        Log("Solution is {0}", _logic.Solution);
+
+        stageDisplayText.text = "1";
         ChangeState(State.Idle);
     }
 
@@ -172,44 +180,67 @@ public sealed class MusicalChairsModule : ModdedModule
         {
             case State.Idle:
                 _queryCode = new[] { '_', '_', '_' };
+                ActivateAllButtons();
                 UpdateDisplay();
                 break;
             
             case State.Interrogating:
+                DeactivateAllButtons();
                 UpdateDisplay();
-                StartCoroutine(DelayedStateChangeCoroutine(timeInterrogating, State.ShowingResult));
+                switch (_stage)
+                {
+                    case 1:
+                        _logic.FirstStage();
+                        _lastResult = _logic.FirstStageResult.ToArray();
+                        break;
+                    case 2:
+                        _logic.SecondStage();
+                        _lastResult = _logic.SecondStageResult.ToArray();
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+
+                if (_queryCode.SequenceEqual(_lastResult))
+                {
+                    StartCoroutine(DelayedStateChangeCoroutine(timeInterrogating, State.ShowingResult));
+                    break;
+                }
+                StartCoroutine(DelayedStateChangeCoroutine(timeInterrogating, State.IncorrectAccusation));
                 break;
             
             case State.ShowingResult:
-                // TODO: actually get result
-                _lastResult = new string(_queryCode);
                 UpdateDisplay();
+                _stage++;
+                stageDisplayText.text = _stage.ToString();
                 StartCoroutine(DelayedStateChangeCoroutine(timeShowingResult, State.Idle));
                 break;
             
             case State.Accusing:
-                // TODO: process win or lose
                 UpdateDisplay();
-                StartCoroutine(DelayedStateChangeCoroutine(timeAccusing, State.Complete));
+                _queryCode = _queryCode.Distinct().ToArray();
+                if (_queryCode.Length == 3 && _queryCode.All(el => _logic.Solution.Contains(el)))
+                {
+                    StartCoroutine(DelayedStateChangeCoroutine(timeAccusing, State.Complete));
+                    break;
+                }
+
+                _lastResult = _logic.Solution.ToArray();
+                StartCoroutine(DelayedStateChangeCoroutine(timeAccusing, State.IncorrectAccusation));
                 break;
             
             case State.IncorrectAccusation:
+                Log("{0} was input, {1} was expected!", new string(_queryCode), _lastResult);
+                Strike();
                 UpdateDisplay();
-                StartCoroutine(DelayedStateChangeCoroutine(timeShowingResult, State.Idle));
+                StartCoroutine(DelayedResetCoroutine(timeShowingResult));
                 break;
             
             case State.Complete:
                 _audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.CorrectChime, transform);
                 Solve();
                 UpdateDisplay();
-                foreach (var button in buttons)
-                {
-                    button.IsActive = false;
-                }
-
-                clrButton.IsActive = false;
-                interrogateButton.IsActive = false;
-                accuseButton.IsActive = false;
+                DeactivateAllButtons();
                 
                 break;
             
@@ -236,7 +267,7 @@ public sealed class MusicalChairsModule : ModdedModule
                 break;
             
             case State.ShowingResult:
-                displayText.text = _lastResult;
+                displayText.text = new string(_lastResult);
                 break;
             
             case State.Accusing:
@@ -259,10 +290,38 @@ public sealed class MusicalChairsModule : ModdedModule
                 throw new ArgumentOutOfRangeException();
         }
     }
+
+    private void DeactivateAllButtons()
+    {
+        foreach (var button in buttons)
+        {
+            button.IsActive = false;
+        }
+        clrButton.IsActive = false;
+        interrogateButton.IsActive = false;
+        accuseButton.IsActive = false; 
+    }
+
+    private void ActivateAllButtons()
+    {
+        foreach (var button in buttons)
+        {
+            button.IsActive = true;
+        }
+        clrButton.IsActive = true;
+        interrogateButton.IsActive = true;
+        accuseButton.IsActive = true;
+    }
     
     private IEnumerator DelayedStateChangeCoroutine(float delay, State nextState)
     {
         yield return new WaitForSeconds(delay);
         ChangeState(nextState);
+    }
+
+    private IEnumerator DelayedResetCoroutine(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        OnActivate();
     }
 }
